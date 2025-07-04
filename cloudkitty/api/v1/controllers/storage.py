@@ -25,7 +25,9 @@ from cloudkitty.api.v1.datamodels import storage as storage_models
 from cloudkitty.common import policy
 from cloudkitty import storage
 from cloudkitty.utils import tz as tzutils
+from oslo_log import log as logging
 
+LOG = logging.getLogger(__name__)
 
 CONF = cfg.CONF
 
@@ -67,6 +69,7 @@ class DataFramesController(rest.RestController):
                 return {'dataframes': []}
             filters = {scope_key: project_id}
         try:
+            LOG.info(f'backend.retrieve before time:{datetime.datetime.now()}.')
             resp = backend.retrieve(
                 begin, end,
                 filters=filters,
@@ -74,6 +77,7 @@ class DataFramesController(rest.RestController):
                 paginate=False)
         except storage.NoTimeFrame:
             return storage_models.DataFrameCollection(dataframes=[])
+        LOG.info(f'backend.retrieve after time:{datetime.datetime.now()}.')
         for frame in resp['dataframes']:
             frame_tenant = None
             for type_, points in frame.itertypes():
@@ -99,6 +103,7 @@ class DataFramesController(rest.RestController):
                     tenant_id=frame_tenant,
                     resources=resources)
                 dataframes.append(dataframe)
+        LOG.info(f'get_all return time:{datetime.datetime.now()}.')
         return storage_models.DataFrameCollection(dataframes=dataframes)
 
 

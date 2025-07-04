@@ -22,6 +22,7 @@ from cloudkitty.storage import v2 as v2_storage
 from cloudkitty.storage.v2.opensearch import client as os_client
 from cloudkitty.storage.v2.opensearch import exceptions
 from cloudkitty.utils import tz as tzutils
+from collections import defaultdict
 
 LOG = log.getLogger(__name__)
 
@@ -132,21 +133,29 @@ class OpenSearchStorage(v2_storage.BaseStorage):
         )
 
     def _build_dataframes(self, docs):
-        dataframes = {}
-        nb_points = 0
+        frame_map = defaultdict(list)
+        dt_from_iso = datetime.datetime.fromisoformat
+        doc_to_datapoint = self._doc_to_datapoint
+
         for doc in docs:
             source = doc['_source']
-            start = tzutils.dt_from_iso(source['start'])
-            end = tzutils.dt_from_iso(source['end'])
-            key = (start, end)
-            if key not in dataframes.keys():
-                dataframes[key] = dataframe.DataFrame(start=start, end=end)
-            dataframes[key].add_point(
-                self._doc_to_datapoint(source), source['type'])
-            nb_points += 1
+            try:
+                start = dt_from_iso(source['start'])
+                end = dt_from_iso(source['end'])
+                key = (start, end)
+                frame_map[key].append((doc_to_datapoint(source), source['type']))
+            except ValueError as e:
+                LOG.error(f"Failed to parse datetime: {e}")
+                continue
 
-        output = list(dataframes.values())
-        output.sort(key=lambda frame: (frame.start, frame.end))
+        dataframes = {}
+        for (start, end), points in frame_map.items():
+            frame = dataframe.DataFrame(start=start, end=end)
+            for point, type_ in points:
+                frame.add_point(point, type_)
+            dataframes[(start, end)] = frame
+
+        output = sorted(dataframes.values(), key=lambda frame: (frame.start, frame.end))
         return output
 
     def retrieve(self, begin=None, end=None,
@@ -158,6 +167,7 @@ class OpenSearchStorage(v2_storage.BaseStorage):
         total, docs = self._conn.retrieve(
             begin, end, filters, metric_types,
             offset=offset, limit=limit, paginate=paginate)
+        LOG.info(f"opensearch retrieve after time: {datetime.datetime.now()}")
         return {
             'total': total,
             'dataframes': self._build_dataframes(docs),
