@@ -33,17 +33,21 @@ class SummaryModel(wtypes.Base):
     res_type = wtypes.text
     """Resource type of the sample."""
 
+    resource_id = wtypes.text
+    """Resource ID of the sample."""
+
     flavor_name = wtypes.text
 
     rate = wtypes.text
     """summary rate of the sample"""
 
     def __init__(self, begin=None, end=None, tenant_id=None,
-                 res_type=None, flavor_name=None, rate=None):
+                 res_type=None, resource_id=None, flavor_name=None, rate=None):
         self.begin = begin
         self.end = end
         self.tenant_id = tenant_id if tenant_id else "ALL"
         self.res_type = res_type if res_type else "ALL"
+        self.resource_id = resource_id if resource_id else "ALL"
         self.flavor_name = flavor_name if flavor_name else "None"
         # TODO(Aaron): Need optimize, control precision with decimal
         self.rate = str(float('%0.5f' % rate)) if rate else "0"
@@ -53,6 +57,7 @@ class SummaryModel(wtypes.Base):
                 'end': self.end,
                 'tenant_id': self.tenant_id,
                 'res_type': self.res_type,
+                'resource_id': self.resource_id,
                 'flavor_name': self.flavor_name,
                 'rate': self.rate}
 
