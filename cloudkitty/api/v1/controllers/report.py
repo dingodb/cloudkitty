@@ -143,6 +143,8 @@ class ReportController(rest.RestController):
             storage_groupby.append(scope_key)
         if groupby is not None and 'res_type' in groupby:
             storage_groupby.append('type')
+        if groupby is not None and 'id' in groupby:
+            storage_groupby.append('id')
         if groupby is not None and 'flavor' in groupby:
             storage_groupby.append('flavor_name')
         filters = {scope_key: tenant_id} if tenant_id else None
@@ -157,6 +159,7 @@ class ReportController(rest.RestController):
             kwargs = {
                 'res_type': res.get('type') or res.get('res_type'),
                 'tenant_id': res.get(scope_key) or res.get('tenant_id'),
+                'resource_id': res.get('id'),
                 'flavor_name': res.get('flavor_name'),
                 'begin': tzutils.local_to_utc(res['begin'], naive=True),
                 'end': tzutils.local_to_utc(res['end'], naive=True),
