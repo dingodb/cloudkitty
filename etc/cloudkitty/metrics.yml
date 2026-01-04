@@ -6,8 +6,8 @@ metrics:
       - id
       - user_id
       - project_id
-    metadata:
       - flavor_name
+    metadata:
       - flavor_id
       - vcpus
     mutate: NUMBOOL
@@ -29,6 +29,7 @@ metrics:
     extra_args:
       aggregation_method: mean
       resource_type: image
+      force_granularity: 300
 
   volume.size:
     unit: GiB
@@ -56,6 +57,7 @@ metrics:
     extra_args:
       aggregation_method: mean
       resource_type: instance_network_interface
+      force_granularity: 300
 
   network.incoming.bytes.rate:
     unit: MB
@@ -70,6 +72,7 @@ metrics:
     extra_args:
       aggregation_method: mean
       resource_type: instance_network_interface
+      force_granularity: 300
 
   ip.floating:
     unit: ip
@@ -83,6 +86,7 @@ metrics:
     extra_args:
       aggregation_method: mean
       resource_type: network
+      force_granularity: 300
 
   radosgw.objects.size:
     unit: GiB
@@ -94,3 +98,4 @@ metrics:
     extra_args:
       aggregation_method: mean
       resource_type: ceph_account
+      force_granularity: 300
