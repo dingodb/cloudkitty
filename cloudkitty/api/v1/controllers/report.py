@@ -139,13 +139,16 @@ class ReportController(rest.RestController):
 
         scope_key = CONF.collect.scope_key
         storage_groupby = []
-        if groupby is not None and 'tenant_id' in groupby:
+        # 将 groupby 字符串按逗号分割成列表，避免子字符串匹配问题
+        # 例如 'tenant_id' 包含 'id' 子字符串，会导致错误匹配
+        groupby_list = groupby.split(',') if groupby else []
+        if 'tenant_id' in groupby_list:
             storage_groupby.append(scope_key)
-        if groupby is not None and 'res_type' in groupby:
+        if 'res_type' in groupby_list:
             storage_groupby.append('type')
-        if groupby is not None and 'id' in groupby:
+        if 'id' in groupby_list:
             storage_groupby.append('id')
-        if groupby is not None and 'flavor' in groupby:
+        if 'flavor' in groupby_list:
             storage_groupby.append('flavor_name')
         filters = {scope_key: tenant_id} if tenant_id else None
         result = storage.total(
